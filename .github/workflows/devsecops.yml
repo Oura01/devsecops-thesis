@@ -7,20 +7,30 @@ on:
   pull_request:
 
 jobs:
-  build:
+  security-pipeline:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
+      - name: Checkout Repository
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.9"
+          python-version: '3.9'
 
-      - name: Install dependencies
-        run: pip install -r requirements.txt
+      - name: Install Dependencies
+        run: |
+          pip install -r requirements.txt
 
-      - name: Build Docker image
-        run: docker build -t devsecops-demo .
+      - name: Build Docker Image
+        run: |
+          docker build -t devsecops-demo .
+
+      - name: Run Trivy Vulnerability Scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'devsecops-demo'
+          format: 'table'
+          exit-code: '0'
+          ignore-unfixed: true
