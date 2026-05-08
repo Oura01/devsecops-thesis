@@ -2,35 +2,75 @@ name: DevSecOps Pipeline
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
+    branches: [ main ]
 
 jobs:
-  security-pipeline:
+  devsecops-pipeline:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+
+      # STEP 1 - Checkout Repository
+      - name: Checkout Code
         uses: actions/checkout@v4
 
+      # STEP 2 - Set up Python
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.9'
 
+      # STEP 3 - Install Dependencies
       - name: Install Dependencies
         run: |
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      # STEP 4 - SonarCloud Scan (SAST)
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+
+      # STEP 5 - OWASP Dependency Check (SCA)
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'devsecops-thesis'
+          path: '.'
+          format: 'HTML'
+          out: 'results'
+          args: >
+            --enableRetired
+
+      # STEP 6 - Upload Dependency Check Report
+      - name: Upload Dependency Check Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: results/
+
+      # STEP 7 - Build Docker Image
       - name: Build Docker Image
         run: |
-          docker build -t devsecops-demo .
+          docker build -t devsecops-demo:latest .
 
-      - name: Run Trivy Vulnerability Scanner
+      # STEP 8 - Trivy Container Scan
+      - name: Trivy Container Scan
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: 'devsecops-demo'
+          image-ref: 'devsecops-demo:latest'
           format: 'table'
           exit-code: '0'
-          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH,MEDIUM'
+          output: 'results/trivy-results.txt'
+
+      # STEP 9 - Upload Trivy Results
+      - name: Upload Trivy Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: trivy-results
+          path: results/trivy-results.txt
