@@ -32,7 +32,7 @@ jobs:
       - name: SonarCloud Scan
         uses: SonarSource/sonarqube-scan-action@master
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ 96715146 }}
           SONAR_HOST_URL: https://sonarcloud.io
 
       # STEP 5 - OWASP Dependency Check (SCA)
