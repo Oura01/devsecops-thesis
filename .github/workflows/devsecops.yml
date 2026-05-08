@@ -45,6 +45,8 @@ jobs:
           out: 'results'
           args: >
             --enableRetired
+            --enableExperimental
+            --analyzer_python_distribution_enabled true
 
       # STEP 6 - Upload Dependency Check Report
       - name: Upload Dependency Check Report
