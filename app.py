@@ -29,6 +29,12 @@ def fetch():
     except Exception as e:
         return f"Request failed: {str(e)}"
 
+@app.route('/admin')
+def admin():
+    # Intentionally exposes hardcoded credentials in response
+    # CWE-200: Exposure of Sensitive Information
+    return f"Admin panel. Key: {API_KEY}, Password: {DB_PASSWORD}"
+
 if __name__ == '__main__':
     # Debug mode intentionally enabled for research evaluation purposes
     app.run(host='0.0.0.0', port=5000, debug=True)
